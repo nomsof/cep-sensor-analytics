@@ -18,7 +18,7 @@ import com.cep.sensor.analytics.topology.utils.refers.TopologyStreams;
 import com.cep.sensor.analytics.topology.utils.validators.IncomingEventValidator;
 
 /**
- * TxtTupleValidatorBolt reads from a kafka Spout event per event.
+ * TxtTupleValidatorBolt reads from a kafka Spout per event.
  * Parse that event from the incoming format to Event domain class and send it to another bolt
  */
 public class TxtTupleValidatorBolt extends BaseRichBolt {
@@ -60,10 +60,6 @@ public class TxtTupleValidatorBolt extends BaseRichBolt {
       declarer.declareStream(TopologyStreams.INCOMING_TUPLE_ERROR.getValue(),
             new Fields(TopologyFields.TUPLE_MSG.getValue()));
    }
-
-   /***************************************************/
-   /*********** GETTERS - SETTERS ********************/
-   /***************************************************/
 
    /**
     * @return the _stormConf

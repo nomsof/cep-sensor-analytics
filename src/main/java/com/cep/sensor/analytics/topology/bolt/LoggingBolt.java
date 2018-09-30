@@ -40,10 +40,6 @@ public class LoggingBolt extends BaseRichBolt {
 
    public void declareOutputFields(OutputFieldsDeclarer declarer) {}
 
-   /***************************************************/
-   /************ GETTERS - SETTERS ********************/
-   /***************************************************/
-
    /**
     * @return the _collector
     */

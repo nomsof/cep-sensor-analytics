@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * IncomingEventValidator is's a class to handle txt or json events and coverts them into Event
+ * IncomingEventValidator is a class to handle txt or json events and coverts them into Event
  * domain class
  *
  */
@@ -36,7 +36,7 @@ public class IncomingEventValidator implements Serializable {
       this.mapper.setSerializationInclusion(Include.NON_NULL);
    }
 
-   /*Validate Incoming Raw events and construct an Event Java Object*/
+   // Validate Incoming Raw events and construct an Event Java Object
    public Event validateTxtAndConvert(String tuple) {
       String[] result;
 
@@ -78,7 +78,7 @@ public class IncomingEventValidator implements Serializable {
       return eventObj;
    }
 
-   /*Validate Incoming JSON Format events and construct an Event Java Object*/
+   // Validate Incoming JSON Format events and construct an Event Java Object
    public Event validateJsonAndConvert(String tuple) {
 
       if (tuple == null) {

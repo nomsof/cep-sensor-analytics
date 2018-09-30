@@ -60,10 +60,6 @@ public class JsonTupleValidatorBolt extends BaseRichBolt {
             new Fields(TopologyFields.TUPLE_MSG.getValue()));
    }
 
-   /***************************************************/
-   /*********** GETTERS - SETTERS ********************/
-   /***************************************************/
-
    /**
     * @return the _stormConf
     */

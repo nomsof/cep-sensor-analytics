@@ -18,8 +18,9 @@ import com.cep.sensor.analytics.topology.utils.refers.TopologyFields;
 import com.cep.sensor.analytics.topology.utils.refers.TopologyStreams;
 
 /**
- * Coordinator Bolt handles incoming events by routing them into different streams using the proper
- * key
+ *
+ * Coordinator Bolt that handles incoming events by routing them into
+ * different streams using the proper key
  */
 public class CoordinatorBolt extends BaseRichBolt {
 
@@ -58,10 +59,6 @@ public class CoordinatorBolt extends BaseRichBolt {
       declarer.declareStream(TopologyStreams.KEY_UID.getValue(),
             new Fields(TopologyFields.TUPLE_KEY.getValue(), TopologyFields.TUPLE_MSG.getValue()));
    }
-
-   /***************************************************/
-   /*********** GETTERS - SETTERS ********************/
-   /***************************************************/
 
    /**
     * @return the _stormConf

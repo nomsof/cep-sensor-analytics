@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Coordinator Bolt handles incoming events by routing them into different streams using the proper
- * key
+ * Coordinator Bolt that handles incoming events by routing them into different
+ * streams using the proper key
  */
 public class PrepareESBolt extends BaseRichBolt {
 
@@ -105,10 +105,6 @@ public class PrepareESBolt extends BaseRichBolt {
             new Fields(TopologyFields.TUPLE_SOURCE.getValue(), TopologyFields.TUPLE_INDEX.getValue(),
                   TopologyFields.TUPLE_TYPE.getValue(), TopologyFields.TUPLE_ID.getValue()));
    }
-
-   /***************************************************/
-   /*********** GETTERS - SETTERS ********************/
-   /***************************************************/
 
    /**
     * @return the _stormConf

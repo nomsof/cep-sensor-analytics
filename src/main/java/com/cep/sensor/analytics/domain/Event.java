@@ -12,22 +12,18 @@ public class Event implements Serializable{
    private Date startDate;
    private int antenna;
    private String uid;
-   
+
    public Event() {
       super();
    }
 
-   
+
    public Event(Date startDate, int antenna, String id) {
       super();
       this.startDate = startDate;
       this.antenna = antenna;
       this.uid = id;
    }
-
-   /***************************************************/
-   /************ GETTERS - SETTERS ********************/
-   /***************************************************/
 
    /**
     * @return the startDate
@@ -123,8 +119,4 @@ public class Event implements Serializable{
       builder.append("]");
       return builder.toString();
    }
-
-
-   
-   
 }
