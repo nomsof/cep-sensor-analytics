@@ -10,7 +10,7 @@ import com.cep.sensor.analytics.topology.utils.configs.EsperConfig;
  * ExtendedEsperBolt prepares EsperBolt using EsperConfig in order
  * to be initialized through Flux config
  */
-public class ExtendedEsperBolt extends EsperBolt{
+public class ExtendedEsperBolt extends EsperBolt {
 
    private static final long serialVersionUID = 4151409193345862377L;
 
@@ -19,5 +19,4 @@ public class ExtendedEsperBolt extends EsperBolt{
       this.setStreamIDs(Arrays.asList(conf.getStreams()));
       this.addStatements(Collections.singleton(conf.getQuery()));
    }
-
 }

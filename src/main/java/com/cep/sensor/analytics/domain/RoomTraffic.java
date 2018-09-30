@@ -17,10 +17,6 @@ public class RoomTraffic implements Serializable {
    private Date minTime;
    private Integer counter;
 
-   /***************************************************/
-   /************ GETTERS - SETTERS ********************/
-   /***************************************************/
-
    /**
     * @return the id
     */

@@ -36,10 +36,6 @@ public class EventFull implements Serializable {
       this.endDate = null;
    }
 
-   /***************************************************/
-   /************ GETTERS - SETTERS ********************/
-   /***************************************************/
-
    /**
     * @return the uid
     */

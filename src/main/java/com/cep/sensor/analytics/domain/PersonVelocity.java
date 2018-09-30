@@ -16,10 +16,6 @@ public class PersonVelocity implements Serializable {
    private Date timeid;
    private Long avgTime;
 
-   /***************************************************/
-   /************ GETTERS - SETTERS ********************/
-   /***************************************************/
-
    /**
     * @return the uid
     */
