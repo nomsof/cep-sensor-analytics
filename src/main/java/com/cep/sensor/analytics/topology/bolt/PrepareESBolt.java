@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Coordinator Bolt that handles incoming events by routing them into different
- * streams using the proper key
+ * Gets a result from esper bolts and returns a hash
+ * that can be indexed in Elastic Search
  */
 public class PrepareESBolt extends BaseRichBolt {
 
