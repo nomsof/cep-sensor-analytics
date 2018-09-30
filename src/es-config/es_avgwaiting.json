@@ -1,0 +1,26 @@
+{
+  "settings": {
+    "number_of_shards": 1
+  },
+  "mappings": {
+    "es_avgwaiting": {
+      "properties": {
+        "antenna": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "timeid": {
+          "type": "date"
+        },
+        "minTime": {
+          "type": "long"
+        },
+        "maxTime": {
+          "type": "long"
+        }
+      }
+    }
+  }
+}

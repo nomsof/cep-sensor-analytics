@@ -1,0 +1,23 @@
+{
+  "settings": {
+    "number_of_shards": 1
+  },
+  "mappings": {
+    "es_avgpersons": {
+      "properties": {
+        "antenna": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "timeid": {
+          "type": "date"
+        },
+        "cnt": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

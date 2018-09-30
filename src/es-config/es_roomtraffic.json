@@ -1,0 +1,26 @@
+{
+  "settings": {
+    "number_of_shards": 1
+  },
+  "mappings": {
+    "es_roomtraffic": {
+      "properties": {
+        "antenna": {
+          "type": "integer"
+        },
+        "counter": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "timeid": {
+          "type": "date"
+        },
+        "minTime": {
+          "type": "date"
+        }
+      }
+    }
+  }
+}

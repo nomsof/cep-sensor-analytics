@@ -1,0 +1,23 @@
+{
+  "settings": {
+    "number_of_shards": 1
+  },
+  "mappings": {
+    "es_avgvelocity": {
+      "properties": {
+        "uid": {
+          "type": "keyword"
+        },
+        "id": {
+          "type": "keyword"
+        },
+        "timeid": {
+          "type": "date"
+        },
+        "avgTime": {
+          "type": "long"
+        }
+      }
+    }
+  }
+}

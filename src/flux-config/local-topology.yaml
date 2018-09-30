@@ -1,0 +1,232 @@
+name: "cep-sensor-analytics"
+
+components:
+  - id: "stringScheme"
+    className: "org.apache.storm.kafka.StringScheme"
+
+  - id: "stringMultiScheme"
+    className: "org.apache.storm.spout.SchemeAsMultiScheme"
+    constructorArgs:
+      - ref: "stringScheme"
+
+  - id: "zkHosts"
+    className: "org.apache.storm.kafka.ZkHosts"
+    constructorArgs:
+      - "localhost:2181"
+
+  - id: "spoutConfig_txt"
+    className: "org.apache.storm.kafka.SpoutConfig"
+    constructorArgs:
+      # brokerHosts
+      - ref: "zkHosts"
+      # topic
+      - "CSVINPUT"
+      # zkRoot
+      - "/kafkaSpout"
+      # id
+      - "myId"
+    properties:
+      - name: "ignoreZkOffsets"
+        value: true
+      - name: "scheme"
+        ref: "stringMultiScheme"
+
+  - id: "esper_roomTraffic"
+    className: "com.cep.sensor.analytics.topology.utils.configs.EsperConfig"
+    constructorArgs:
+      - "insert into RoomTraffic select A.antenna as antenna,A.antenna as id,min(A.startDate) as minTime,min(A.startDate) as timeid,count(distinct A.uid) as counter from Event.win:time_batch(5 sec) A group by A.antenna"
+    configMethods:
+      - name: "setStreams"
+        args:
+          - ["es_roomtraffic"]
+
+  - id: "esper_avgWaiting"
+    className: "com.cep.sensor.analytics.topology.utils.configs.EsperConfig"
+    constructorArgs:
+        - "insert into AvgWaiting select A.antenna as id,A.antenna as antenna,cast(min((B.startDate.  toMillisec() -A.startDate.toMillisec())/1000),long) as minTime,cast(max((B.startDate.toMillisec() -A.startDate.toMillisec())/1000),long) as maxTime,min(A.startDate) as timeid from Event.win:time_batch(5 sec) A inner join Event.win:time_batch(6 sec) B ON A.uid=B.uid WHERE A.antenna != B.antenna and B.startDate is not null  and A.startDate is not null and (B.startDate.toMillisec() -A.startDate.toMillisec()) > 0 group by A.antenna"
+    configMethods:
+      - name: "setStreams"
+        args:
+          - ["es_avgwaiting"]
+            
+  - id: "esper_avgPersons"
+    className: "com.cep.sensor.analytics.topology.utils.configs.EsperConfig"
+    constructorArgs:
+        - "INSERT INTO AvgPersons SELECT A.antenna as id,A.antenna as antenna,count(distinct A.uid) as cnt,min(A.startDate) as timeid FROM Event.win:time_batch(5 sec) A group by A.antenna"
+    configMethods:
+      - name: "setStreams"
+        args:
+          - ["es_avgpersons"]
+
+  - id: "esper_velocity"
+    className: "com.cep.sensor.analytics.topology.utils.configs.EsperConfig"
+    constructorArgs:
+        - "insert into PersonVelocity select distinct A.uid as uid,A.uid as id,cast(avg((B.startDate.  toMillisec() - A.startDate.toMillisec())/1000),long) as avgTime,min(A.startDate) as timeid from Event.win:time_batch(5 sec) A inner join Event.win:time_batch(6 sec) B ON A.uid=B.uid WHERE A.antenna != B.antenna and B.startDate is not null  and A.startDate is not null and (B.startDate.toMillisec() -A.startDate.toMillisec()) > 0 "
+    configMethods:
+      - name: "setStreams"
+        args:
+          - ["es_avgvelocity"]
+
+# topology configuration
+# this will be passed to the submitter as a map of config options
+#
+config:
+  topology.workers: 1
+  # ...
+
+# spout definitions
+spouts:
+  - id: "txt_kafka_spout"
+    className: "org.apache.storm.kafka.KafkaSpout"
+    constructorArgs:
+      - ref: "spoutConfig_txt"
+    parallelism: 1
+
+# bolt definitions
+bolts:
+  - id: "txt_parser"
+    className: "com.cep.sensor.analytics.topology.bolt.TxtTupleValidatorBolt"
+    parallelism: 1
+
+  - id: "event_coordinator"
+    className: "com.cep.sensor.analytics.topology.bolt.CoordinatorBolt"
+    parallelism: 1
+
+  - id: "flux_log"
+    className: "org.apache.storm.flux.wrappers.bolts.LogInfoBolt"
+    parallelism: 1
+
+  - id: "e_log_txt"
+    className: "com.cep.sensor.analytics.topology.bolt.LoggingBolt"
+    parallelism: 1
+    constructorArgs:
+      - "TXT_ERROR"
+
+  - id: "c_log"
+    className: "com.cep.sensor.analytics.topology.bolt.LoggingBolt"
+    parallelism: 1
+    constructorArgs:
+      - "ECHO_BOLT"
+
+  - id: "esper_bolt_roomTraffic"
+    className: "com.cep.sensor.analytics.topology.bolt.ExtendedEsperBolt"
+    parallelism: 1
+    constructorArgs:
+      - ref: "esper_roomTraffic"
+
+  - id: "esper_bolt_avgWaiting"
+    className: "com.cep.sensor.analytics.topology.bolt.ExtendedEsperBolt"
+    parallelism: 1
+    constructorArgs:
+      - ref: "esper_avgWaiting"
+
+  - id: "esper_bolt_avgPersons"
+    className: "com.cep.sensor.analytics.topology.bolt.ExtendedEsperBolt"
+    parallelism: 1
+    constructorArgs:
+      - ref: "esper_avgPersons"
+
+  - id: "esper_bolt_avgVelocity"
+    className: "com.cep.sensor.analytics.topology.bolt.ExtendedEsperBolt"
+    parallelism: 1
+    constructorArgs:
+      - ref: "esper_velocity"
+
+  - id: "prepare_es"
+    className: "com.cep.sensor.analytics.topology.bolt.PrepareESBolt"
+    parallelism: 1
+
+  - id: "es_bolt"
+    className: "com.cep.sensor.analytics.topology.bolt.external.EsIndexBolt"
+    parallelism: 1
+    constructorArgs:
+      - "http://localhost:9200"
+
+#stream definitions
+# stream definitions define connections between spouts and bolts.
+# note that such connections can be cyclical
+# custom stream groupings are also supported
+
+streams:
+  - name: "kafka --> txt_parser"
+    from: "txt_kafka_spout"
+    to: "txt_parser"
+    grouping:
+      type: SHUFFLE
+
+  - name: "txt_parser --> event_coordinator" 
+    from: "txt_parser"
+    to: "event_coordinator"
+    grouping:
+      type: SHUFFLE
+      streamId: "INCOMING_TUPLE_VALID"
+
+  - name: "event_coordinator --> esper_bolt_roomTraffic"  
+    from: "event_coordinator"
+    to: "esper_bolt_roomTraffic"
+    grouping:
+      type: SHUFFLE
+      streamId: "KEY_ANTENNA"
+
+  - name: "esper_bolt_roomTraffic --> prepare_es"   
+    from: "esper_bolt_roomTraffic"
+    to: "prepare_es"
+    grouping:
+      type: SHUFFLE
+      streamId: "es_roomtraffic"
+
+  - name: "event_coordinator --> esper_bolt_avgWaiting"  
+    from: "event_coordinator"
+    to: "esper_bolt_avgWaiting"
+    grouping:
+      type: SHUFFLE
+      streamId: "KEY_ANTENNA"
+
+  - name: "esper_bolt_avgWaiting --> prepare_es"   
+    from: "esper_bolt_avgWaiting"
+    to: "prepare_es"
+    grouping:
+      type: SHUFFLE
+      streamId: "es_avgwaiting"
+
+  - name: "event_coordinator --> esper_bolt_avgPersons"  
+    from: "event_coordinator"
+    to: "esper_bolt_avgPersons"
+    grouping:
+      type: SHUFFLE
+      streamId: "KEY_ANTENNA"
+                                                       
+  - name: "esper_bolt_avgPersons --> prepare_es"
+    from: "esper_bolt_avgPersons"
+    to: "prepare_es"
+    grouping:
+      type: SHUFFLE
+      streamId: "es_avgpersons"
+
+  - name: "event_coordinator --> esper_bolt_avgVelocity"  
+    from: "event_coordinator"
+    to: "esper_bolt_avgVelocity"
+    grouping:
+      type: SHUFFLE
+      streamId: "KEY_UID"
+                                                       
+  - name: "esper_bolt_avgVelocity --> prepare_es"
+    from: "esper_bolt_avgVelocity"
+    to: "prepare_es"
+    grouping:
+      type: SHUFFLE
+      streamId: "es_avgvelocity"
+
+  - name: "prepare_es --> c_log"   
+    from: "prepare_es"
+    to: "c_log"
+    grouping:
+      type: SHUFFLE
+      streamId: "INCOMING_TUPLE_VALID"
+
+  - name: "prepare_es --> es_bolt"   
+    from: "prepare_es"
+    to: "es_bolt"
+    grouping:
+      type: SHUFFLE
+      streamId: "INCOMING_TUPLE_VALID"
