@@ -4,7 +4,7 @@ CEP Sensor Analytics is a project based on Apache Storm and Esper Framework.
 The engine reads input events and runs custom queries.
 ![Project Pipeline](./src/images/Pipeline.png)
 
-# Requirement
+# Requirements
   - [Oracle JDK 1.8.X](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
   - [Apache Storm 1.0.1](https://archive.apache.org/dist/storm/apache-storm-1.0.1/)
   - [Apache Kafka kafka_2.11-0.9.0.1](https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz)
