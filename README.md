@@ -13,31 +13,33 @@ The engine reads input events and runs custom queries.
     
 # Installation
  1. Download And Install all Requirements.
- 2. Replace the followin:
-    a. /cep-sensor-analytics/src/kafka-storm-configs/server.properties in kafka config folder.
-    b. /cep-sensor-analytics/src/kafka-storm-configs/storm.yaml in storm config folder. 
- 3. Update /cep-sensor-analytics/src/scripts/env.sh with proper paths in your enviroment.
+ 2. Replace the following:  
+    * `/cep-sensor-analytics/src/kafka-storm-configs/server.properties` in kafka config folder.  
+    * `/cep-sensor-analytics/src/kafka-storm-configs/storm.yaml` in storm config folder.   
+ 3. Update `/cep-sensor-analytics/src/scripts/env.sh` with proper paths in your enviroment.  
 
 # Execution
-    1. 
-		cd  /cep-sensor-analytics/src/kafka-storm-configs/
-    2. Start Kafka
-        ./start_kafka.sh
-    3. Start Storm
-         ./start_storm.sh
-    4. Prepare topics
-         ./prepare_topics.sh
-    5. Submit Topology
-         ./submit_topology_(local|distr).sh
-    6. Start Kibana/ES
-         ./submit_es_kibana.sh
-	7. Create Indicies if not exist
-			curl -XPUT 'http://localhost:9200/es_avgpersons' -d @es_avgpersons.json
-			curl -XPUT 'http://localhost:9200/es_avgvelocity' -d @es_avgvelocity.json
-			curl -XPUT 'http://localhost:9200/es_avgwaiting' -d @es_avgwaiting.json
-			curl -XPUT 'http://localhost:9200/es_roomtraffic' -d @es_roomtraffic.json
-    8. Generate Data
-        ./data_generator.py -s #SECONDS(>60) |$KAFKA_HOME/bin/kafka-console-producer.sh --topic CSVINPUT --broker-list localhost:9092
+1. Set current path as kafka config path:  
+  `cd /cep-sensor-analytics/src/kafka-storm-configs/`
+2. Start Kafka:   
+  `./start_kafka.sh`
+3. Start Storm:  
+  `./start_storm.sh`
+4. Prepare topics:  
+  `./prepare_topics.sh`
+5. Submit Topology:  
+  `./submit_topology_(local|distr).sh`
+6. Start Kibana/ES:  
+  `./submit_es_kibana.sh`
+7. Create Indicies if they don't exist:    
+ ```
+  curl -XPUT 'http://localhost:9200/es_avgpersons'  -d @es_avgpersons.json
+  curl -XPUT 'http://localhost:9200/es_avgvelocity' -d @es_avgvelocity.json
+  curl -XPUT 'http://localhost:9200/es_avgwaiting'  -d @es_avgwaiting.json
+  curl -XPUT 'http://localhost:9200/es_roomtraffic' -d @es_roomtraffic.json
+  ```
+8. Generate Data:  
+  `./data_generator.py -s #SECONDS(>60) |$KAFKA_HOME/bin/kafka-console-producer.sh --topic CSVINPUT --broker-list localhost:9092`
 
 
 Please note that a single machine needs memory (8GB+) for all these!
