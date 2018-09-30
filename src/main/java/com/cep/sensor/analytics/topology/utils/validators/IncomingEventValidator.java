@@ -40,11 +40,7 @@ public class IncomingEventValidator implements Serializable {
    public Event validateTxtAndConvert(String tuple) {
       String[] result;
 
-      if (tuple == null) {
-         return null;
-      }
-
-      if (tuple.length() < 10) {
+      if (tuple == null || tuple.length() < 10) {
          return null;
       }
 
@@ -65,11 +61,7 @@ public class IncomingEventValidator implements Serializable {
       eventObj.setAntenna(Integer.parseInt(result[1]));
 
       try {
-         Date td = _dateFormat.parse(result[2]);
-         eventObj.setStartDate(new Date());
-         eventObj.getStartDate().setHours(td.getHours());
-         eventObj.getStartDate().setMinutes(td.getMinutes());
-         eventObj.getStartDate().setSeconds(td.getSeconds());
+         eventObj.setStartDate(_dateFormat.parse(result[2]));
       } catch (ParseException e) {
          LOG.error("Cannot convert string to time [{}]", result[2]);
          return null;
