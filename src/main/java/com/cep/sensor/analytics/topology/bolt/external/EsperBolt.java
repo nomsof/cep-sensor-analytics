@@ -1,5 +1,7 @@
 package com.cep.sensor.analytics.topology.bolt.external;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,8 +14,11 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cep.sensor.analytics.domain.Event;
+import com.cep.sensor.analytics.domain.EventExt;
 import com.cep.sensor.analytics.topology.utils.refers.TopologyStreams;
 import com.cep.sensor.analytics.utils.exceptions.EsperBoltException;
 import com.espertech.esper.client.Configuration;
@@ -27,6 +32,7 @@ import com.espertech.esper.client.soda.EPStatementObjectModel;
 public class EsperBolt extends BaseRichBolt implements UpdateListener {
 
    private static final long serialVersionUID = -581693166287235015L;
+   private static final Logger LOG = LoggerFactory.getLogger(EsperBolt.class);
 
    private OutputCollector collector;
    private transient EPServiceProvider epService;
@@ -56,7 +62,7 @@ public class EsperBolt extends BaseRichBolt implements UpdateListener {
    }
 
    /**
-    * 
+    *
     * @param sIDs
     */
    public void setStreamIDs(List<String> sIDs) {
@@ -130,9 +136,26 @@ public class EsperBolt extends BaseRichBolt implements UpdateListener {
     */
    @Override
    public void execute(Tuple tuple) {
-      this.epService.getEPRuntime().sendEvent((Event) tuple.getValue(1));
+      if(tuple != null) {
+         if(tuple.getSourceGlobalStreamId().get_streamId().equals("recurring")){
+            this.epService.getEPRuntime().sendEvent(convertMapToObject((HashMap<Object,Object>)tuple.getValue(0)));
+         }else {
+            this.epService.getEPRuntime().sendEvent((Event) tuple.getValue(tuple.size()-1));
+         }
+      }
       collector.ack(tuple);
    }
+
+   private EventExt convertMapToObject(HashMap<Object,Object> input) {
+      EventExt event = new EventExt();
+      event.setNew_antenna((int)input.get("new_antenna"));
+      event.setOld_antenna((int)input.get("old_antenna"));
+      event.setStart_time((Date)input.get("start_time"));
+      event.setChange_time((Date)input.get("change_time"));
+      event.setUid((String)input.get("uid"));
+      return event;
+   }
+
 
    /**
     * {@inheritDoc}

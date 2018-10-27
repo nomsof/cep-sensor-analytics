@@ -1,0 +1,35 @@
+{
+  "settings": {
+    "number_of_shards": 1
+  },
+  "mappings": {
+    "es_avgvelocity": {
+      "properties": {
+        "uid": {
+          "type": "keyword"
+        },
+        "id": {
+          "type": "keyword"
+        },
+        "timeid": {
+          "type": "date"
+        },
+        "start_time": {
+          "type": "date"
+        },
+        "end_time": {
+          "type": "date"
+        },
+        "cnt": {
+          "type": "integer"
+        },
+        "new_antenna": {
+          "type": "integer"
+        },
+        "old_antenna": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

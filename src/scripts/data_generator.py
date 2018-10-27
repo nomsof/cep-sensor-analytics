@@ -5,8 +5,8 @@ import datetime
 import time
 import sys, getopt
 
-U_ANTENNA = '/home/snomikou/master/cep-sensor-analytics/src/scripts/data/antennas.txt'
-U_IDS = '/home/snomikou/master/cep-sensor-analytics/src/scripts/data/uuids.txt'
+U_ANTENNA = './data/antennas.txt'
+U_IDS = './data/uuids.txt'
 
 
 def main(argv):
@@ -46,12 +46,28 @@ def main(argv):
 		i = 0
 		current_datetime = datetime.datetime.now()
 		while i < len(uuids):
+			# Change antenna
 			if random.randint(0,100) > 90 :
 				uuids[i][1] = antennas[random.randint(0,len(antennas)-1)]
 			new_dt = current_datetime + datetime.timedelta(seconds=random.randint(10,sleepsecs-10))
 			while new_dt <= pr_dt[uuids[i][0]] :
 				new_dt = current_datetime + datetime.timedelta(seconds=random.randint(10,sleepsecs-1))
-			print "<"+str(uuids[i][0])+","+str(uuids[i][1])+","+str(new_dt.strftime('%H:%M:%S.%f'))[:-3]+">"
+			# Lost event
+			if random.randint(0,100) >= 20 :
+				print "<"+str(uuids[i][0])+","+str(uuids[i][1])+","+str(new_dt.strftime('%H:%M:%S.%f'))[:-3]+">"
+				if random.randint(0,100) >= 95 :
+					new_dt_1 = new_dt
+					rounds = random.randint(1,4)
+					round = 1
+					rand_ant = antennas[random.randint(0,len(antennas)-1)]
+					while round <=rounds:
+						new_dt_1 = new_dt_1 + datetime.timedelta(seconds=1)
+						new_dt_2  = new_dt_1 + datetime.timedelta(seconds=2)
+						new_dt_3  = new_dt_2 + datetime.timedelta(seconds=2)
+						print "<"+str(uuids[i][0])+","+str(rand_ant)+","+str(new_dt_1.strftime('%H:%M:%S.%f'))[:-3]+">"
+						print "<"+str(uuids[i][0])+","+str(uuids[i][1])+","+str(new_dt_2.strftime('%H:%M:%S.%f'))[:-3]+">"
+						print "<"+str(uuids[i][0])+","+str(rand_ant)+","+str(new_dt_3.strftime('%H:%M:%S.%f'))[:-3]+">"
+						round += 1
 			i += 1
 		time.sleep(sleepsecs)
 

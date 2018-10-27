@@ -37,6 +37,7 @@ The engine reads input events and runs custom queries.
   curl -XPUT 'http://localhost:9200/es_avgvelocity' -d @es_avgvelocity.json
   curl -XPUT 'http://localhost:9200/es_avgwaiting'  -d @es_avgwaiting.json
   curl -XPUT 'http://localhost:9200/es_roomtraffic' -d @es_roomtraffic.json
+  curl -XPUT 'http://localhost:9200/es_recurring' -d @es_recurring.json
   ```
 8. Generate Data:  
   `./data_generator.py -s #SECONDS(>60) |$KAFKA_HOME/bin/kafka-console-producer.sh --topic CSVINPUT --broker-list localhost:9092`

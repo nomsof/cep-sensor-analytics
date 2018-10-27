@@ -48,7 +48,7 @@ components:
       - name: "setStreams"
         args:
           - ["es_avgwaiting"]
-            
+
   - id: "esper_avgPersons"
     className: "com.cep.sensor.analytics.topology.utils.configs.EsperConfig"
     constructorArgs:
@@ -66,6 +66,27 @@ components:
       - name: "setStreams"
         args:
           - ["es_avgvelocity"]
+
+
+  - id: "esper_recurring_1"
+    className: "com.cep.sensor.analytics.topology.utils.configs.EsperConfig"
+    constructorArgs:
+        - "insert into EventExt select distinct A.uid as uid,A.startDate as start_time, B.startDate as change_time,min(A.antenna,B.antenna) as old_antenna,max(A.antenna,B.antenna) as new_antenna from Event.win:length(2) A inner join Event.win:length(2) B ON A.uid=B.uid WHERE A.antenna != B.antenna and B.startDate is not null  and A.startDate is not null and (B.startDate.toMillisec() -A.startDate.toMillisec()) > 0 "
+    configMethods:
+      - name: "setStreams"
+        args:
+          - ["recurring"]
+
+
+  - id: "esper_recurring_2"
+    className: "com.cep.sensor.analytics.topology.utils.configs.EsperConfig"
+    constructorArgs:
+        - "insert into RepeatEvent select A.uid as uid,A.uid as id,A.new_antenna as new_antenna,A.old_antenna as old_antenna, cast(Math.round(count(A.uid)/2),int) as cnt,min(A.start_time) as start_time,min(A.start_time) as timeid,max(A.change_time) as end_time from EventExt.win:time_batch(35 sec) A group by A.uid,A.new_antenna,A.old_antenna having count(A.uid)/2 > 1"
+    configMethods:
+      - name: "setStreams"
+        args:
+          - ["es_recurring"]
+
 
 # topology configuration
 # this will be passed to the submitter as a map of config options
@@ -132,6 +153,18 @@ bolts:
     constructorArgs:
       - ref: "esper_velocity"
 
+  - id: "esper_bolt_recurring_1"
+    className: "com.cep.sensor.analytics.topology.bolt.ExtendedEsperBolt"
+    parallelism: 2
+    constructorArgs:
+      - ref: "esper_recurring_1"
+
+  - id: "esper_bolt_recurring_2"
+    className: "com.cep.sensor.analytics.topology.bolt.ExtendedEsperBolt"
+    parallelism: 2
+    constructorArgs:
+      - ref: "esper_recurring_2"
+
   - id: "prepare_es"
     className: "com.cep.sensor.analytics.topology.bolt.PrepareESBolt"
     parallelism: 4
@@ -142,8 +175,8 @@ bolts:
     constructorArgs:
       - "http://localhost:9200"
 
-#stream definitions
-# stream definitions define connections between spouts and bolts.
+# Stream definitions, that actually are
+# connections between spouts and bolts.
 # note that such connections can be cyclical
 # custom stream groupings are also supported
 
@@ -154,48 +187,48 @@ streams:
     grouping:
       type: SHUFFLE
 
-  - name: "txt_parser --> event_coordinator" 
+  - name: "txt_parser --> event_coordinator"
     from: "txt_parser"
     to: "event_coordinator"
     grouping:
       type: SHUFFLE
       streamId: "INCOMING_TUPLE_VALID"
 
-  - name: "event_coordinator --> esper_bolt_roomTraffic"  
+  - name: "event_coordinator --> esper_bolt_roomTraffic"
     from: "event_coordinator"
     to: "esper_bolt_roomTraffic"
     grouping:
       type: SHUFFLE
       streamId: "KEY_ANTENNA"
 
-  - name: "esper_bolt_roomTraffic --> prepare_es"   
+  - name: "esper_bolt_roomTraffic --> prepare_es"
     from: "esper_bolt_roomTraffic"
     to: "prepare_es"
     grouping:
       type: SHUFFLE
       streamId: "es_roomtraffic"
 
-  - name: "event_coordinator --> esper_bolt_avgWaiting"  
+  - name: "event_coordinator --> esper_bolt_avgWaiting"
     from: "event_coordinator"
     to: "esper_bolt_avgWaiting"
     grouping:
       type: SHUFFLE
       streamId: "KEY_ANTENNA"
 
-  - name: "esper_bolt_avgWaiting --> prepare_es"   
+  - name: "esper_bolt_avgWaiting --> prepare_es"
     from: "esper_bolt_avgWaiting"
     to: "prepare_es"
     grouping:
       type: SHUFFLE
       streamId: "es_avgwaiting"
 
-  - name: "event_coordinator --> esper_bolt_avgPersons"  
+  - name: "event_coordinator --> esper_bolt_avgPersons"
     from: "event_coordinator"
     to: "esper_bolt_avgPersons"
     grouping:
       type: SHUFFLE
       streamId: "KEY_ANTENNA"
-                                                       
+
   - name: "esper_bolt_avgPersons --> prepare_es"
     from: "esper_bolt_avgPersons"
     to: "prepare_es"
@@ -203,13 +236,13 @@ streams:
       type: SHUFFLE
       streamId: "es_avgpersons"
 
-  - name: "event_coordinator --> esper_bolt_avgVelocity"  
+  - name: "event_coordinator --> esper_bolt_avgVelocity"
     from: "event_coordinator"
     to: "esper_bolt_avgVelocity"
     grouping:
       type: SHUFFLE
       streamId: "KEY_UID"
-                                                       
+
   - name: "esper_bolt_avgVelocity --> prepare_es"
     from: "esper_bolt_avgVelocity"
     to: "prepare_es"
@@ -217,16 +250,37 @@ streams:
       type: SHUFFLE
       streamId: "es_avgvelocity"
 
-  - name: "prepare_es --> c_log"   
+  - name: "event_coordinator --> esper_bolt_recurring_1"
+    from: "event_coordinator"
+    to: "esper_bolt_recurring_1"
+    grouping:
+      type: SHUFFLE
+      streamId: "KEY_UID"
+
+  - name: "esper_bolt_recurring_1 --> esper_bolt_recurring_2"
+    from: "esper_bolt_recurring_1"
+    to: "esper_bolt_recurring_2"
+    grouping:
+      type: SHUFFLE
+      streamId: "recurring"
+
+  - name: "esper_bolt_recurring_2 --> prepare_es"
+    from: "esper_bolt_recurring_2"
+    to: "prepare_es"
+    grouping:
+      type: SHUFFLE
+      streamId: "es_recurring"
+
+  - name: "prepare_es --> c_log"
     from: "prepare_es"
     to: "c_log"
     grouping:
       type: SHUFFLE
       streamId: "INCOMING_TUPLE_VALID"
-#
-#  - name: "prepare_es --> es_bolt"   
-#    from: "prepare_es"
-#    to: "es_bolt"
-#    grouping:
-#      type: SHUFFLE
-#      streamId: "INCOMING_TUPLE_VALID"
+
+  - name: "prepare_es --> es_bolt"
+    from: "prepare_es"
+    to: "es_bolt"
+    grouping:
+      type: SHUFFLE
+      streamId: "INCOMING_TUPLE_VALID"
